@@ -2,6 +2,12 @@ package io.tintoll.userservice.model
 
 import io.tintoll.userservice.domain.entity.User
 
+
+data class UserEditRequest(
+    val username:String,
+)
+
+
 data class MeResponse(
     val id: Long,
     val email: String,
