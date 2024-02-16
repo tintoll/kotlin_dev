@@ -6,12 +6,15 @@ import io.tintoll.userservice.domain.SignInResponse
 import io.tintoll.userservice.domain.SignUpRequest
 import io.tintoll.userservice.domain.entity.User
 import io.tintoll.userservice.domain.repository.UserRepository
+import io.tintoll.userservice.exception.InvalidJwtTokenException
 import io.tintoll.userservice.exception.PasswordNotMatchedException
 import io.tintoll.userservice.exception.UserExistsException
 import io.tintoll.userservice.exception.UserNotFoundException
 import io.tintoll.userservice.utils.BCryptUtils
 import io.tintoll.userservice.utils.JWTClaim
 import io.tintoll.userservice.utils.JWTUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.springframework.stereotype.Service
 import kotlin.time.Duration
 
@@ -25,6 +28,7 @@ class UserService(
     companion object {
         private val CACHE_TTL = java.time.Duration.ofMinutes(1)
     }
+
     suspend fun signUp(singUpRequest: SignUpRequest) {
         with(singUpRequest) {
             userRepository.findByEmail(email)?.let {
@@ -51,7 +55,7 @@ class UserService(
             val jwtClaim = JWTClaim(userId = id!!, email = email, username = username, profileUrl = profileUrl)
 
             val token = JWTUtils.createToken(jwtClaim, jwtProperties)
-            cacheManager.awaitPut(key=token, value = this, ttl = CACHE_TTL)
+            cacheManager.awaitPut(key = token, value = this, ttl = CACHE_TTL)
             SignInResponse(email = email, username = username, token = token)
         }
 
@@ -60,4 +64,19 @@ class UserService(
     suspend fun logout(token: String) {
         cacheManager.awaitEvict(token)
     }
+
+    suspend fun getByToken(token: String): User {
+        val cachedUser: User = cacheManager.awaitGetOrPut(key = token, ttl = CACHE_TTL) {
+            val decodedJWT = JWTUtils.decode(token, jwtProperties.secret, jwtProperties.issuer)
+
+            val userId = decodedJWT.claims["userId"]?.asLong() ?: throw InvalidJwtTokenException()
+            get(userId)
+        }
+        return cachedUser
+    }
+
+    suspend fun get(userId: Long): User {
+        return userRepository.findById(userId) ?: throw UserNotFoundException()
+    }
+
 }

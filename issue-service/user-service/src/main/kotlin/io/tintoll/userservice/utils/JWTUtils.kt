@@ -20,7 +20,7 @@ object JWTUtils {
             .withClaim("username", claim.username)
             .sign(Algorithm.HMAC256(properties.secret))
 
-    fun decide(token: String, secret: String, issuer: String): DecodedJWT {
+    fun decode(token: String, secret: String, issuer: String): DecodedJWT {
         val algorithm = Algorithm.HMAC256(secret)
         val verifier = JWT.require(algorithm)
             .withIssuer(issuer)
