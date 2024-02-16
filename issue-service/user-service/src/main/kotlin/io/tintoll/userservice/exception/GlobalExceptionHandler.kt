@@ -1,6 +1,7 @@
 package io.tintoll.userservice.exception
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.mono
 import mu.KotlinLogging
@@ -22,7 +23,7 @@ class GlobalExceptionHandler(private val objectMapper: ObjectMapper) : ErrorWebE
     override fun handle(exchange: ServerWebExchange, ex: Throwable): Mono<Void> = mono {
         logger.error { ex.message }
 
-        var errorResponse = if (ex is ServerException) {
+        val errorResponse = if (ex is ServerException) {
             ErrorResponse(code = ex.code, message = ex.message)
         } else {
             ErrorResponse(code = 500, message = "Internal Server Error")
@@ -33,7 +34,7 @@ class GlobalExceptionHandler(private val objectMapper: ObjectMapper) : ErrorWebE
             headers.contentType = MediaType.APPLICATION_JSON
 
             val dataBuffer = bufferFactory().wrap(objectMapper.writeValueAsBytes(errorResponse))
-            writeWith(dataBuffer.toMono()).awaitSingle()
+            writeWith(dataBuffer.toMono()).awaitFirstOrNull()
         }
     }
 }

@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 class JWTUtilsTest {
     private val logger = KotlinLogging.logger {}
     @Test
-    fun `createToken`() {
+    fun createToken() {
         // given
         val claim = JWTClaim(1, "dev@gmail.com", "profile.jpg", "개발자")
         var properties = JWTProperties("java", "auth", 3600, "my-secret")
@@ -24,7 +24,7 @@ class JWTUtilsTest {
     }
 
     @Test
-    fun `decide`() {
+    fun decode() {
         // given
         val claim = JWTClaim(1, "dev@gmail.com", "profile.jpg", "개발자")
         var properties = JWTProperties("java", "auth", 3600, "my-secret")
