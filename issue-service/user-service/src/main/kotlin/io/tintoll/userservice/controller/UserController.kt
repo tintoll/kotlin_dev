@@ -39,4 +39,9 @@ class UserController (private val userService: UserService){
     suspend fun get(@AuthToken token: String) : MeResponse {
         return MeResponse(userService.getByToken(token))
     }
+
+    @GetMapping("/{userId}/username")
+    suspend fun getUsername(userId: Long) : Map<String, String> {
+        return mapOf("reporter" to userService.get(userId).username)
+    }
 }
