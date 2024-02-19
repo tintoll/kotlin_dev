@@ -12,6 +12,8 @@ repositories {
 dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     implementation(kotlin("reflect"))
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.3")
+    implementation("com.sun.mail:javax.mail:1.6.2")
 }
 
 tasks.test {
